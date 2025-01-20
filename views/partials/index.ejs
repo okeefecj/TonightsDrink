@@ -1,0 +1,21 @@
+<%- include('header.ejs') %>
+
+<div class="container justify-content-center">
+    <% if (locals.data) { %>
+
+            <div class="row mb-3">
+                
+                <%- include('filter.ejs') %>
+                
+                <%- include('drinkCard.ejs') %>
+                
+            </div>
+
+
+
+    <% } else { %>
+        <div>Data did not load!</div>
+    <% } %>
+</div>
+        
+<%- include('footer.ejs') %>

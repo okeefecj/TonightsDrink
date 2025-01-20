@@ -1,0 +1,16 @@
+<div class="col-sm-6">
+    <div class="card m-3 bg-body-tertiary col-lg-12">
+        <img src="<%= locals.data.strDrinkThumb %>/preview" class="img-fluid m-3 rounded-start card-img-top" style="height: 200px; width:200px;">
+        <div class="card-body">
+            <h5 class="card-title"><%= locals.data.strDrink %></h5>
+            <p class="fw-light fs-6">Instructions:</p>
+            <p class="card-text"><%= locals.data.strInstructions %></p>
+            <p class="fw-light fs-6">Ingredients:</p>
+            <ul class="list-group list-group-numbered">
+                <% for( let i = 0; i < locals.ingredientList.length; i++ ) { %>
+                    <li class="list-group-item"><%= locals.ingredientList[i] %></li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</div>

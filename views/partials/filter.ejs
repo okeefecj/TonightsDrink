@@ -1,0 +1,18 @@
+<div class="col-sm-6">
+    <form method="post" action="/filterDrinks">
+
+        <div class="mb-3">
+            <label for="Ingredient" class="col-sm-2 col-form-label col-form-label-sm">Ingredient</label>
+            <div class="col-sm-6">
+                <select name="ingredient" id="Ingredient" class="form-select">
+                    <option selected>Choose an option</option>
+                    <% for( let i = 0; i < locals.ingredientFilters.drinks.length; i++ ) { %>
+                        <option value="<%= locals.ingredientFilters.drinks[i].strIngredient1 %>"><%= locals.ingredientFilters.drinks[i].strIngredient1 %></option>
+                    <% } %>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+    </form>
+</div>
