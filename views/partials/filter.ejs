@@ -1,18 +1,66 @@
 <div class="col-sm-6">
     <form method="post" action="/filterDrinks">
 
+        <!-- Dropdown menu for Alcohol type -->
         <div class="mb-3">
-            <label for="Ingredient" class="col-sm-2 col-form-label col-form-label-sm">Ingredient</label>
+            <label for="Alcohol" class="col-sm-6 col-form-label col-form-label-sm">Should alcohol be included?</label>
             <div class="col-sm-6">
-                <select name="ingredient" id="Ingredient" class="form-select">
+                <select name="alcohol" id="Alcohol" class="form-select">
                     <option selected>Choose an option</option>
-                    <% for( let i = 0; i < locals.ingredientFilters.drinks.length; i++ ) { %>
-                        <option value="<%= locals.ingredientFilters.drinks[i].strIngredient1 %>"><%= locals.ingredientFilters.drinks[i].strIngredient1 %></option>
+                    <% if (locals.ingredientFilters) { %>
+                        <% for( let i = 0; i < locals.alcoholFilters.length; i++ ) { %>
+                            <option value="<%= locals.alcoholFilters[i] %>"><%= locals.alcoholFilters[i] %></option>
+                        <% } %>
+                    <% } %>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Dropdown menu for Category -->
+        <div class="mb-3">
+            <label for="Category" class="col-sm-2 col-form-label col-form-label-sm">Category</label>
+            <div class="col-sm-6">
+                <select name="category" id="Category" class="form-select">
+                    <option selected>Choose a category</option>
+                    <% if (locals.categoryFilters) { %>
+                        <% for( let i = 0; i < locals.categoryFilters.length; i++ ) { %>
+                            <option value="<%= locals.categoryFilters[i] %>"><%= locals.categoryFilters[i] %></option>
+                        <% } %>
                     <% } %>
                 </select>
             </div>
         </div>
 
+         <!-- Dropdown menu for Glass type -->
+         <div class="mb-3">
+            <label for="Alcohol" class="col-sm-6 col-form-label col-form-label-sm">Glass</label>
+            <div class="col-sm-6">
+                <select name="glass" id="Glass" class="form-select">
+                    <option selected>Choose a glass</option>
+                    <% if (locals.glassFilters) { %>
+                        <% for( let i = 0; i < locals.glassFilters.length; i++ ) { %>
+                            <option value="<%= locals.glassFilters[i] %>"><%= locals.glassFilters[i] %></option>
+                        <% } %>
+                    <% } %>
+                </select>
+            </div>
+        </div>
+
+        <!-- Dropdown menu for ingredients -->
+        <div class="mb-3">
+            <label for="Ingredient" class="col-sm-2 col-form-label col-form-label-sm">Ingredient</label>
+            <div class="col-sm-6">
+                <select name="ingredient" id="Ingredient" class="form-select">
+                    <option selected>Choose an ingredient</option>
+                    <% if (locals.ingredientFilters) { %>
+                        <% for( let i = 0; i < locals.ingredientFilters.length; i++ ) { %>
+                            <option value="<%= locals.ingredientFilters[i] %>"><%= locals.ingredientFilters[i] %></option>
+                        <% } %>
+                    <% } %>
+                </select>
+            </div>
+        </div>
+        
         <button type="submit" class="btn btn-primary btn-sm">Submit</button>
     </form>
 </div>
