@@ -57,11 +57,30 @@ app.post("/filterDrinks", async (req,res) => {
         //First find drinks that match the user provided filters
         var drinkIDsMatchingUserFilters = await getMatchingDrinkIDsFromFilters(req.body);
 
+        if(drinkIDsMatchingUserFilters.length == 0)
+        {
+            res.render(__dirname + "/views/partials/index.ejs", {
+                categoryFilters: getJsonValuesSorted(categories),
+                glassFilters: getJsonValuesSorted(glasses),
+                alcoholFilters : getJsonValuesSorted(alcohol),
+                ingredientFilters: getJsonValuesSorted(ingredients)
+            })
+
+            return;
+        }
+
         //Get the actual drink data based on IDs
         var drinksMatchingFilteredIDs = await getDrinksFromIDs(drinkIDsMatchingUserFilters);
 
         //The actual drink we're going to present to user (randomly selected from matching drinks)
-        var randomDrinkFromMatchingIDs = drinksMatchingFilteredIDs[Math.floor((Math.random() * drinksMatchingFilteredIDs.length) + 1)];
+
+        if(drinksMatchingFilteredIDs.length > 1){
+            var randomDrinkFromMatchingIDs = drinksMatchingFilteredIDs[Math.floor((Math.random() * drinksMatchingFilteredIDs.length) + 1)];
+        }
+        else{
+            var randomDrinkFromMatchingIDs = drinksMatchingFilteredIDs[0];
+        }
+
 
         //Get the drink ingredients and save to array for easy data access on markup
         let entries = Object.entries(randomDrinkFromMatchingIDs);
@@ -82,8 +101,8 @@ app.post("/filterDrinks", async (req,res) => {
             ingredientFilters: getJsonValuesSorted(ingredients)
         })
 
-    }catch(Error){
-        console.log(`${Error}`);
+    }catch(err){
+        console.log(`${err.stack}`);
         res.status(500).send("I fucked up, idk");
     }
 
@@ -119,60 +138,65 @@ async function getMatchingDrinkIDsFromFilters(body)
     let reqAlcohol = body.alcohol;
     let reqGlass = body.glass;
 
-    let allDrinkIDs = [];
+    var drinksMatchingIngredient = [];
+    var drinksMatchingCategory = [];
+    var drinksMatchingAlcohol = [];
+    var drinksMatchingGlass = [];
 
     let response;
 
     //Only grab drinks based on ingredient if the user selected something other than the default.
-    if(!reqIngredient.includes('Choose')){
+    if(reqIngredient !== undefined && !reqIngredient.includes('Choose')){
 
         //Grab based on ingredient selected
         response = await axios.get(`${baseURL}filter.php?i=${reqIngredient}`);
         
         //Grab the drink IDs from the response and add to array
         for(const index in Object.entries(response.data.drinks)){
-            if(!allDrinkIDs.includes(response.data.drinks[index].idDrink))
+            if(!drinksMatchingIngredient.includes(response.data.drinks[index].idDrink))
             {
-                allDrinkIDs.push(response.data.drinks[index].idDrink);
+                drinksMatchingIngredient.push(response.data.drinks[index].idDrink);
             }
         }
     }
     
-    if(!reqCategory.includes('Choose')){
+    if(reqCategory !== undefined && !reqCategory.includes('Choose')){
 
         response = await axios.get(`${baseURL}filter.php?c=${reqCategory}`);
         for(const index in Object.entries(response.data.drinks)){
-            if(!allDrinkIDs.includes(response.data.drinks[index].idDrink))
+            if(!drinksMatchingCategory.includes(response.data.drinks[index].idDrink))
             {
-                allDrinkIDs.push(response.data.drinks[index].idDrink);
+                drinksMatchingCategory.push(response.data.drinks[index].idDrink);
             }
         }
     }
 
-    if(!reqGlass.includes('Choose')){
+    if(reqGlass !== undefined && !reqGlass.includes('Choose')){
         //Grab based on category selected
         response = await axios.get(`${baseURL}filter.php?g=${reqGlass}`);
         for(const index in response.data.drinks){
-            if(!allDrinkIDs.includes(response.data.drinks[index].idDrink))
+            if(!drinksMatchingGlass.includes(response.data.drinks[index].idDrink))
             {
-                allDrinkIDs.push(response.data.drinks[index].idDrink);
+                drinksMatchingGlass.push(response.data.drinks[index].idDrink);
             }
         }
     }
 
-    if(!reqAlcohol.includes('Choose')){
+    if(reqAlcohol !== undefined && !reqAlcohol.includes('Choose')){
         //Grab based on alcohol type selected
         response = await axios.get(`${baseURL}filter.php?a=${reqAlcohol}`);
         for(const index in response.data.drinks){
-            if(!allDrinkIDs.includes(response.data.drinks[index].idDrink))
+            if(!drinksMatchingAlcohol.includes(response.data.drinks[index].idDrink))
             {
-                allDrinkIDs.push(response.data.drinks[index].idDrink);
+                drinksMatchingAlcohol.push(response.data.drinks[index].idDrink);
             }
         }
     }
 
-    console.log(allDrinkIDs);
-    return allDrinkIDs;
+
+    let intersectingDrinkIDs = findDrinkIDIntersection(drinksMatchingIngredient,drinksMatchingAlcohol,drinksMatchingGlass,drinksMatchingCategory);
+
+    return intersectingDrinkIDs;
 
 }
 
@@ -198,6 +222,114 @@ async function getDrinksFromIDs(drinkIDs)
     }
 
     return drinkData;
+}
+
+function findDrinkIDIntersection(drinksMatchingIngredient,drinksMatchingAlcohol,drinksMatchingGlass,drinksMatchingCategory){
+
+    let returnList = [];
+
+    if(drinksMatchingIngredient.length > 0)
+    {
+        drinksMatchingIngredient.forEach(drink => {
+            let shouldRemove = false;
+            if(drinksMatchingAlcohol.length > 0 && !drinksMatchingAlcohol.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(drinksMatchingGlass.length > 0 && !drinksMatchingGlass.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(drinksMatchingCategory.length > 0 && !drinksMatchingCategory.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(shouldRemove)
+            {
+                drinksMatchingIngredient.pop(drink);
+            }
+            else{
+                returnList.push(drink);
+            }
+        })
+    }
+
+    else if (drinksMatchingAlcohol.length > 0)
+    {
+        drinksMatchingAlcohol.forEach(drink => {
+            let shouldRemove = false;
+            if(drinksMatchingIngredient.length > 0 && !drinksMatchingIngredient.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(drinksMatchingGlass.length > 0 && !drinksMatchingGlass.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(drinksMatchingCategory.length > 0 && !drinksMatchingCategory.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(shouldRemove)
+            {
+                drinksMatchingIngredient.pop(drink);
+            }else{
+                returnList.push(drink);
+            }
+        })
+    }
+
+    else if (drinksMatchingGlass.length > 0)
+    {
+        drinksMatchingGlass.forEach(drink => {
+            let shouldRemove = false;
+            if(drinksMatchingIngredient.length > 0 && !drinksMatchingIngredient.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(drinksMatchingAlcohol.length > 0 && !drinksMatchingAlcohol.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(drinksMatchingCategory.length > 0 && !drinksMatchingCategory.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(shouldRemove)
+            {
+                drinksMatchingIngredient.pop(drink);
+            }else{
+                returnList.push(drink);
+            }
+        })
+    }
+
+    else if (drinksMatchingCategory.length > 0)
+    {
+        drinksMatchingCategory.forEach(drink => {
+            let shouldRemove = false;
+            if(drinksMatchingIngredient.length > 0 && !drinksMatchingIngredient.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(drinksMatchingAlcohol.length > 0 && !drinksMatchingAlcohol.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(drinksMatchingGlass.length > 0 && !drinksMatchingGlass.includes(drink)){
+                shouldRemove = true;
+            }
+    
+            if(shouldRemove)
+            {
+                drinksMatchingIngredient.pop(drink);
+            }else{
+                returnList.push(drink);
+            }
+        })   
+    }
+
+    return returnList;
 }
 
 
